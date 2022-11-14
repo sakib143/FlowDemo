@@ -5,8 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import java.util.concurrent.Flow
 
 class MainActivity : AppCompatActivity() {
@@ -15,26 +14,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-         GlobalScope.launch {
-            val data = producer()
-            data.collect {
-                Log.d("Consumer 1: ==>",it.toString())
-            }
-        }
-
-        //If we have multiple consumer then all consumer will retrieve all the data
         GlobalScope.launch {
-            delay(2500)
-            val data = producer()
-            data.collect {
-                Log.d("Consumer 2: ==>",it.toString())
+            producer().onStart {
+                Log.d("==>","Starting out")
+                emit(-1)
+            }.onCompletion {
+                Log.d("==>","Completed")
+                emit(6)
+            }.onEach {
+                Log.d("==>","About to emit ${it}")
+            }.collect {
+                Log.d("==>","Final data ${it}")
             }
         }
     }
 
     //Creating top level function by name of floow like below.
     fun producer() = flow<Int> {
-        val array = listOf(1,2,3,4,5,6,7,8,9,10)
+        val array = listOf(1, 2, 3, 4, 5)
         array.forEach {
             delay(1000)
             emit(it)

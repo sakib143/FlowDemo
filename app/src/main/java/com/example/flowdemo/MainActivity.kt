@@ -1,12 +1,14 @@
 package com.example.flowdemo
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
-import java.util.concurrent.Flow
+import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,26 +17,25 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         GlobalScope.launch {
-            producer().onStart {
-                Log.d("==>","Starting out")
-                emit(-1)
-            }.onCompletion {
-                Log.d("==>","Completed")
-                emit(6)
-            }.onEach {
-                Log.d("==>","About to emit ${it}")
+            getNotes().map {
+                FormattedNotes(it.isActive,it.title,it.description)
+            }.filter {
+                it.isActive
             }.collect {
-                Log.d("==>","Final data ${it}")
+                Log.d("==>","Data checking ${it}")
             }
         }
     }
 
-    //Creating top level function by name of floow like below.
-    fun producer() = flow<Int> {
-        val array = listOf(1, 2, 3, 4, 5)
-        array.forEach {
-            delay(1000)
-            emit(it)
-        }
-    }
+   fun getNotes(): Flow<Notes> {
+       val list = listOf(
+           Notes(1,true,"First Notes","First Notes Description"),
+           Notes(2,false,"Second Notes","Second Notes Description"),
+           Notes(3,true,"Third Notes","Third Notes Description")
+       )
+       return list.asFlow()
+   }
 }
+
+data class Notes(val id: Int,val isActive: Boolean,val title: String, val description: String)
+data class FormattedNotes(val isActive: Boolean,val title: String, val description: String)

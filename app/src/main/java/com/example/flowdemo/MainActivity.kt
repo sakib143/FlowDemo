@@ -6,9 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -19,30 +17,21 @@ class MainActivity : AppCompatActivity() {
 
         GlobalScope.launch(Dispatchers.Main) {
             val result = producer()
-            result.collect {
-                Log.d("==>","First consumer ??? ${it}")
-            }
-        }
-
-        GlobalScope.launch(Dispatchers.Main) {
-            val result = producer()
-            delay(2500)
-            result.collect {
-                Log.d("==>","Second consumer ??? ${it}")
-            }
+            delay(2000)
+            Log.d("==>", "First consumer ??? ${result.value}")
         }
     }
 
-    //Creating top level function by name of floow like below.
-    private fun producer() : Flow<Int> {
-        val mutableSharedFlow = MutableSharedFlow<Int>()
+    private fun producer(): StateFlow<Int> {
+        val mutableStateFlow = MutableStateFlow<Int>(10)
         GlobalScope.launch {
-            val list = listOf<Int>(1,2,3,4,5)
-            list.forEach {
-                mutableSharedFlow.emit(it)
-                delay(1000)
-            }
+            delay(1000)
+            mutableStateFlow.emit(20)
+            delay(1000)
+            mutableStateFlow.emit(30)
+            delay(1000)
+            mutableStateFlow.emit(40)
         }
-        return mutableSharedFlow
+        return mutableStateFlow
     }
 }

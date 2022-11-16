@@ -15,17 +15,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         GlobalScope.launch {
-            producer().onStart {
-                Log.d("==>","Starting out")
-                emit(-1)
-            }.onCompletion {
-                Log.d("==>","Completed")
-                emit(6)
-            }.onEach {
-                Log.d("==>","About to emit ${it}")
-            }.collect {
-                Log.d("==>","Final data ${it}")
-            }
+            producer().map {
+                Log.d("flow_demo","Map thread ${Thread.currentThread().name}")
+                it * 2 }
+                .filter {
+                    Log.d("flow_demo","Filter thread ${Thread.currentThread().name}")
+                    it < 8
+                }
+                .flowOn(Dispatchers.IO)
+                .collect {
+                    Log.d("flow_demo","Collect thread ${Thread.currentThread().name}")
+                }
         }
     }
 
@@ -36,5 +36,7 @@ class MainActivity : AppCompatActivity() {
             delay(1000)
             emit(it)
         }
+    }.catch {
+
     }
 }
